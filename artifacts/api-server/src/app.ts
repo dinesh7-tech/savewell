@@ -1,7 +1,7 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
-import router from "./routes";
+import router, { healthRouter } from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -29,6 +29,7 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(healthRouter);
 app.use("/api", router);
 
 export default app;
