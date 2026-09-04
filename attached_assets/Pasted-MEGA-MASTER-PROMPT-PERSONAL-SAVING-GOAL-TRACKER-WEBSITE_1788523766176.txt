@@ -1,0 +1,1423 @@
+MEGA MASTER PROMPT — PERSONAL SAVING GOAL TRACKER WEBSITE
+
+Build a modern, clean, minimal, mobile-first personal savings tracker web application focused primarily on saving money toward goals, not expense tracking.
+
+The core idea is:
+
+«“I manually add the money I save every day, choose where that money came from, and the website automatically tracks my total savings and progress toward my main goal.”»
+
+The application must use real persistent user data, not demo-only data.
+
+---
+
+1. PRODUCT VISION
+
+Create a personal finance web app that feels:
+
+- Extremely clean
+- Minimal
+- Fast
+- Simple to understand
+- Mobile-first
+- Interactive
+- Modern
+- Premium but not complicated
+
+The user should be able to open the website and understand their financial progress within 2–3 seconds.
+
+Do NOT make it look like complicated accounting software.
+
+The primary question the dashboard should answer is:
+
+«“How much have I saved, how much is left for my goal, and where did my savings come from?”»
+
+---
+
+2. AUTHENTICATION
+
+Implement real user authentication.
+
+Features:
+
+- Sign up
+- Login
+- Logout
+- Forgot password
+- Secure session handling
+- Each user must only see their own data
+- Protected dashboard routes
+
+If using Supabase/Firebase/another backend, use proper authentication and database security rules.
+
+Never expose another user's financial data.
+
+---
+
+3. FIRST-TIME USER ONBOARDING
+
+When a new user signs up, show a simple onboarding flow.
+
+Step 1 — Create Main Goal
+
+Ask:
+
+What are you saving for?
+
+Fields:
+
+- Goal name
+- Goal icon/emoji
+- Target amount
+- Optional target date
+- Optional starting amount
+
+Example:
+
+Goal:
+"New Laptop"
+
+Target:
+"₹1,00,000"
+
+Starting savings:
+"₹10,000"
+
+Target date:
+"31 December 2026"
+
+Then create the goal.
+
+---
+
+4. MAIN DASHBOARD
+
+The dashboard is the most important screen.
+
+Keep it visually clean.
+
+HERO SECTION
+
+Display:
+
+My Main Goal
+
+"💻 New Laptop"
+
+Large amount:
+
+₹24,500
+
+Small text:
+
+of ₹1,00,000 saved
+
+Progress:
+
+24.5%
+
+Progress bar should animate smoothly.
+
+Below:
+
+₹75,500 remaining
+
+If a target date exists, show:
+
+Target: 31 Dec 2026
+
+---
+
+5. DAILY SAVING ACTION
+
+The most prominent action on the dashboard should be:
+
+"+ Add Saving"
+
+Make this button large and easy to tap on mobile.
+
+When clicked, open a clean modal/bottom sheet.
+
+Fields:
+
+Amount
+
+"₹ ______"
+
+Category
+
+Dropdown/select with user's categories.
+
+Date
+
+Default to today.
+
+Note
+
+Optional.
+
+Add to Main Goal
+
+Default ON.
+
+Button:
+
+Save Money
+
+---
+
+6. SAVING LOGIC
+
+Every saving transaction must contain:
+
+- Unique transaction ID
+- User ID
+- Amount
+- Category ID
+- Date
+- Optional note
+- Created timestamp
+- Whether it is linked to the main goal
+
+Example:
+
+Amount: ₹500
+Category: Part-time
+Date: 4 Sep 2026
+Linked to Main Goal: Yes
+
+When saved:
+
+1. Store the transaction in the database.
+2. Update category totals.
+3. Update main goal linked amount.
+4. Update progress percentage.
+5. Update remaining amount.
+6. Update today's total.
+7. Update monthly total.
+8. Update saving streak if applicable.
+9. Update goal completion estimate.
+
+All calculations must be based on real database transactions.
+
+Never hardcode financial values.
+
+---
+
+7. CUSTOM MONEY CATEGORIES
+
+The user must be able to create their own categories.
+
+Default examples:
+
+- 💼 Job
+- 🧑‍💻 Part-time
+- 🎨 Freelance
+- 📱 Content
+- 🏪 Business
+- 🎁 Gift
+- 📈 Investment
+- 💰 Other
+
+But users must be able to:
+
+- Add category
+- Rename category
+- Delete category
+- Choose icon
+- Choose category name
+
+Example:
+
+Job
+Part-time
+YouTube
+Freelance
+Business
+
+Do not force users to use predefined categories.
+
+---
+
+8. CATEGORY → MAIN GOAL LINKING
+
+This is a core feature.
+
+Suppose the user enters:
+
+Job
+
+₹30,000
+
+Part-time
+
+₹15,000
+
+Freelance
+
+₹10,000
+
+Content
+
+₹5,000
+
+Total:
+
+₹60,000
+
+If all transactions are linked to the Main Goal:
+
+«Main Goal Saved = ₹60,000»
+
+The website must automatically calculate this.
+
+Never ask the user to manually update the main goal amount.
+
+---
+
+9. LINK / UNLINK SAVINGS
+
+When adding money, provide:
+
+Add to Main Goal
+
+"ON / OFF"
+
+If ON:
+
+The amount contributes to the Main Goal.
+
+If OFF:
+
+The amount is still stored as real money in the selected category but does NOT contribute to the Main Goal.
+
+Example:
+
+Job
+₹5,000
+Add to Main Goal: ON
+
+→ Main Goal increases by ₹5,000.
+
+Another:
+
+Job
+₹5,000
+Add to Main Goal: OFF
+
+→ Job category increases by ₹5,000.
+
+→ Main Goal remains unchanged.
+
+This distinction is important.
+
+---
+
+10. CATEGORY DASHBOARD
+
+Create a simple Money Sources section.
+
+Example:
+
+Money Sources
+
+💼 Job
+₹35,000
+
+🧑‍💻 Part-time
+₹20,000
+
+🎨 Freelance
+₹10,000
+
+📱 Content
+₹5,000
+
+Each category should be clickable.
+
+When the user taps a category, show:
+
+- Total saved from category
+- Number of saving entries
+- Monthly contribution
+- Main-goal-linked amount
+- Recent transactions
+
+---
+
+11. CATEGORY DETAILS
+
+Example:
+
+🧑‍💻 Part-time
+
+Total Saved
+
+₹20,000
+
+Main Goal Contribution
+
+₹18,000
+
+Separate Savings
+
+₹2,000
+
+Then transaction list:
+
+Sep 4
+₹2,000
+Website project
+
+Sep 2
+₹1,500
+Freelance work
+
+Aug 30
+₹3,000
+Part-time payment
+
+Allow:
+
+- Edit
+- Delete
+- View details
+
+---
+
+12. SAVING HISTORY
+
+Create a clean transaction history.
+
+Example:
+
+Recent Savings
+
+Today
+🧑‍💻 Part-time
++₹500
+
+Yesterday
+💼 Job
++₹1,000
+
+Sep 2
+🎨 Freelance
++₹700
+
+Each transaction should clearly show:
+
+- Amount
+- Category
+- Date
+- Optional note
+- Main goal status
+
+Use positive visual treatment for savings.
+
+---
+
+13. EDIT / DELETE TRANSACTION
+
+Users must be able to edit any transaction.
+
+Example:
+
+₹500 → change to ₹700.
+
+The application must automatically recalculate:
+
+- Category total
+- Main goal total
+- Remaining amount
+- Progress percentage
+- Monthly totals
+- Analytics
+- Streak where applicable
+
+Deleting a transaction must also update everything automatically.
+
+Ask for confirmation before deleting.
+
+---
+
+14. MAIN GOAL CALCULATIONS
+
+Calculate:
+
+Total Goal Savings
+= SUM(all transactions linked to the goal)
+
+Progress:
+
+Progress %
+= (Saved / Target Amount) × 100
+
+Remaining:
+
+Remaining
+= Target Amount - Saved
+
+Never allow negative remaining values to display incorrectly.
+
+If saved amount exceeds target:
+
+Show:
+
+🎉 Goal Completed
+
+and optionally:
+
+₹5,000 over target
+
+---
+
+15. MULTIPLE GOALS
+
+Support multiple savings goals.
+
+Example:
+
+Main Goal
+
+💻 Laptop
+₹70,000 / ₹1,00,000
+
+Other Goals
+
+📱 Phone
+₹15,000 / ₹50,000
+
+✈️ Trip
+₹8,000 / ₹30,000
+
+🚗 Car
+₹1,20,000 / ₹5,00,000
+
+Only one goal can be marked as:
+
+Main Goal
+
+Users can switch their Main Goal.
+
+Existing transactions should not be destroyed when switching goals.
+
+---
+
+16. GOAL CREATION
+
+Allow:
+
+- Goal name
+- Icon
+- Target amount
+- Target date
+- Starting amount
+- Description
+- Main goal toggle
+
+Example:
+
+🎯 Emergency Fund
+
+Target
+₹1,00,000
+
+Target Date
+31 Dec 2026
+
+---
+
+17. SAVING STREAK
+
+Track consecutive saving days.
+
+Example:
+
+🔥 12 Day Saving Streak
+
+Also show:
+
+Best Streak: 21 days
+
+Important:
+
+A streak should mean the user actually recorded a saving transaction on that day.
+
+Do not fake or artificially increase streaks.
+
+Allow multiple transactions on one day but count the day only once.
+
+---
+
+18. DAILY / WEEKLY / MONTHLY SUMMARY
+
+Dashboard cards:
+
+Today
+
+₹500
+
+This Week
+
+₹3,200
+
+This Month
+
+₹12,500
+
+Total Savings
+
+₹70,000
+
+These values must come from actual transactions.
+
+---
+
+19. SAVING CALENDAR
+
+Create a simple calendar view.
+
+Each day should show whether the user saved.
+
+Example:
+
+September 2026
+
+1  ₹500
+2  ₹300
+3  —
+4  ₹700
+5  ₹1,000
+
+Use subtle visual indicators.
+
+Clicking a date should show that day's savings.
+
+---
+
+20. SMART GOAL CALCULATOR
+
+If the user has a target date:
+
+Calculate required average saving.
+
+Example:
+
+Goal:
+₹1,00,000
+
+Saved:
+₹40,000
+
+Remaining:
+₹60,000
+
+Days remaining:
+120
+
+Required average:
+₹500/day
+
+Also calculate based on the user's actual saving history.
+
+Example:
+
+«Your current average is ₹650/day.»
+
+Then:
+
+«At your current pace, you may reach your goal around 18 Dec 2026.»
+
+Clearly label estimates as estimates.
+
+---
+
+21. SMART INSIGHTS
+
+Generate simple useful insights from actual data.
+
+Examples:
+
+«💡 Your highest saving source this month is Job.»
+
+«🔥 You saved money 12 days in a row.»
+
+«🎯 You're currently ahead of the pace needed to reach your goal.»
+
+«📈 Your average daily saving increased this month.»
+
+Do not overwhelm the user with too many insights.
+
+Maximum 1–3 useful insights on the dashboard.
+
+---
+
+22. ANALYTICS
+
+Create a simple analytics page.
+
+Show:
+
+- Savings by category
+- Savings by month
+- Daily savings trend
+- Goal progress
+- Average saving
+- Best saving day
+- Total contributions
+
+Use clean interactive charts.
+
+Charts must use real transaction data.
+
+Example:
+
+Job        ₹35,000
+Part-time  ₹20,000
+Freelance  ₹10,000
+Content     ₹5,000
+
+Allow date filtering:
+
+- 7 days
+- 30 days
+- 3 months
+- 6 months
+- 1 year
+- All time
+
+---
+
+23. NO-SPEND / EXPENSE TRACKING
+
+Do NOT make expense tracking the main feature.
+
+The app is fundamentally a SAVING TRACKER.
+
+If expenses are ever added in the future, keep them optional and secondary.
+
+The primary CTA must always be:
+
++ Add Saving
+
+---
+
+24. USER EXPERIENCE
+
+The application should require as few taps as possible.
+
+Ideal flow:
+
+Open Dashboard
+      ↓
+Tap + Add Saving
+      ↓
+Enter Amount
+      ↓
+Choose Category
+      ↓
+Save
+      ↓
+Goal instantly updates
+
+Target:
+
+Adding a saving should take less than 10 seconds.
+
+---
+
+25. UI DESIGN
+
+Design language:
+
+- Minimal
+- Premium
+- Clean
+- Modern
+- Spacious
+- Mobile-first
+- Rounded but not excessively rounded
+- Subtle borders
+- Very limited shadows
+- Excellent typography
+- Clear hierarchy
+- Smooth micro-interactions
+
+Avoid:
+
+- Clutter
+- Too many cards
+- Huge gradients
+- Excessive animations
+- Neon colors
+- Complicated financial terminology
+- Dense tables
+- Corporate accounting-dashboard appearance
+
+---
+
+26. COLOR SYSTEM
+
+Use a calm financial/productivity aesthetic.
+
+Primary accent can be a tasteful green or another subtle success color.
+
+Use:
+
+- Neutral background
+- White/dark cards depending on theme
+- Strong text
+- Muted secondary text
+- One primary accent
+- Subtle success states
+
+Do not use many bright colors simultaneously.
+
+Category icons can have subtle variations.
+
+---
+
+27. DARK MODE
+
+Support:
+
+- Light mode
+- Dark mode
+- System preference
+
+Remember the user's preference.
+
+Dark mode should remain minimal and readable.
+
+---
+
+28. MOBILE-FIRST DESIGN
+
+The website must work beautifully on:
+
+- Android phones
+- iPhones
+- Tablets
+- Desktop
+
+At 320px width, nothing should overflow.
+
+Touch targets should be comfortable.
+
+Bottom navigation on mobile:
+
+Home
+Goals
+Activity
+Analytics
+Profile
+
+Desktop can use a compact sidebar.
+
+---
+
+29. INTERACTIONS
+
+Add subtle micro-interactions:
+
+When adding savings:
+
+- Button feedback
+- Amount counter animation
+- Progress bar animation
+- Small success animation
+- Optional subtle celebration when reaching milestones
+
+Do NOT make animations distracting.
+
+Respect reduced-motion preferences.
+
+---
+
+30. MILESTONES
+
+Automatically recognize:
+
+10%
+25%
+50%
+75%
+90%
+100%
+
+At milestones show a small celebration.
+
+Example:
+
+«🎉 50% of your goal completed!»
+
+At 100%:
+
+«🏆 Goal Completed!»
+
+---
+
+31. SEARCH AND FILTER
+
+Transaction history should support:
+
+- Search
+- Category filter
+- Date filter
+- Amount filter
+- Goal filter
+
+Keep filtering UI simple.
+
+---
+
+32. DATA MODEL
+
+Use a proper relational database.
+
+Suggested structure:
+
+users
+
+id
+name
+email
+avatar
+created_at
+
+categories
+
+id
+user_id
+name
+icon
+created_at
+updated_at
+
+goals
+
+id
+user_id
+name
+icon
+target_amount
+starting_amount
+target_date
+is_main
+created_at
+updated_at
+
+savings
+
+id
+user_id
+category_id
+goal_id
+amount
+date
+note
+is_goal_linked
+created_at
+updated_at
+
+Use appropriate foreign keys and indexes.
+
+---
+
+33. DATA INTEGRITY
+
+Money calculations must be reliable.
+
+Important rules:
+
+- Store monetary values safely.
+- Never use floating-point calculations carelessly for currency.
+- Validate amounts.
+- Reject invalid/negative values where inappropriate.
+- Prevent duplicate submissions.
+- Recalculate totals from authoritative transaction data.
+- Never rely only on frontend state for financial totals.
+- Use server-side validation where applicable.
+
+Currency:
+
+Indian Rupee (₹ / INR) by default.
+
+Format values using Indian numbering:
+
+₹1,000
+₹10,000
+₹1,00,000
+₹10,00,000
+
+---
+
+34. PERSISTENCE
+
+This is critical.
+
+If the user:
+
+- Refreshes the page
+- Closes the browser
+- Logs out
+- Logs in later
+- Opens the website from another device
+
+their real savings data must remain available.
+
+Do NOT use localStorage as the primary database.
+
+Use a real backend database.
+
+---
+
+35. BACKUP / EXPORT
+
+Provide:
+
+Export Data
+
+Allow users to export:
+
+- Savings transactions
+- Categories
+- Goals
+
+Prefer CSV/Excel.
+
+Optional:
+
+- PDF monthly summary
+
+---
+
+36. SETTINGS
+
+Settings should include:
+
+Profile
+
+Name
+Email
+
+Currency
+
+Default INR
+
+Theme
+
+Light / Dark / System
+
+Categories
+
+Manage categories
+
+Goals
+
+Manage goals
+
+Data
+
+Export data
+
+Account
+
+Logout
+Delete account
+
+---
+
+37. EMPTY STATES
+
+Design beautiful empty states.
+
+If no savings exist:
+
+«🌱 Start your savings journey»
+
+«Add your first saving to see your progress here.»
+
+Button:
+
++ Add Saving
+
+If no goal exists:
+
+«🎯 Create your first savings goal»
+
+Button:
+
+Create Goal
+
+Never show empty charts or confusing zero-data screens.
+
+---
+
+38. ERROR HANDLING
+
+Show friendly errors.
+
+Examples:
+
+Invalid amount:
+
+«Please enter a valid amount.»
+
+Zero:
+
+«Enter an amount greater than ₹0.»
+
+Goal target smaller than starting amount:
+
+«Target amount must be greater than your current savings.»
+
+Network error:
+
+«Something went wrong. Please try again.»
+
+Never show raw technical errors to users.
+
+---
+
+39. SECURITY
+
+Implement:
+
+- Secure authentication
+- Authorization
+- Database row-level security if supported
+- Input validation
+- Protected API routes
+- No sensitive financial data in URLs
+- No exposing database credentials
+- No secret keys in frontend
+- Secure logout
+- Proper session expiration
+
+---
+
+40. PERFORMANCE
+
+The application should feel instant.
+
+Optimize:
+
+- Database queries
+- Dashboard calculations
+- Charts
+- Animations
+- Mobile rendering
+
+Avoid unnecessary API requests.
+
+Use loading skeletons where appropriate.
+
+---
+
+41. RESPONSIVE DASHBOARD STRUCTURE
+
+Mobile
+
+────────────────────
+
+Good morning 👋
+
+My Main Goal
+💻 New Laptop
+
+₹24,500
+of ₹1,00,000
+
+██████░░░░░░
+24.5%
+
+₹75,500 remaining
+
+[ + Add Saving ]
+
+Today       This Month
+₹500        ₹12,500
+
+🔥 12 day streak
+
+Money Sources
+💼 Job          ₹35,000
+🧑‍💻 Part-time  ₹20,000
+🎨 Freelance   ₹10,000
+
+Recent Savings
+Today
+Part-time      +₹500
+
+Yesterday
+Job            +₹1,000
+
+────────────────────
+Home Goals Activity Analytics
+────────────────────
+
+Keep this hierarchy very clean.
+
+---
+
+42. DESKTOP DASHBOARD
+
+On desktop:
+
+Left:
+
+Navigation
+
+Center:
+
+Main Goal + Progress
+
+Right:
+
+Quick stats / recent activity
+
+Example:
+
+Sidebar
+│
+├─ Home
+├─ Goals
+├─ Savings
+├─ Analytics
+└─ Settings
+
+        MAIN CONTENT
+
+        Main Goal
+        ₹70,000 / ₹1,00,000
+        ███████░░░
+
+        [+ Add Saving]
+
+        Today | Month | Total
+
+        Money Sources
+        ...
+
+        Recent Savings
+        ...
+
+Do not overcrowd the desktop layout.
+
+---
+
+43. ACCESSIBILITY
+
+Implement:
+
+- Proper labels
+- Keyboard navigation
+- Focus states
+- Semantic HTML
+- Accessible modals
+- Accessible buttons
+- Sufficient contrast
+- Screen-reader friendly labels
+- No hover-only interactions
+
+---
+
+44. TECH STACK
+
+Use a modern production-ready stack.
+
+Preferred example:
+
+Frontend:
+
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Modern component architecture
+
+Backend:
+
+- Supabase or equivalent
+
+Database:
+
+- PostgreSQL
+
+Authentication:
+
+- Supabase Auth or equivalent
+
+Charts:
+
+- Recharts or equivalent
+
+Icons:
+
+- Lucide icons or equivalent
+
+Use clean reusable components.
+
+If the platform has a different recommended stack, use the closest production-quality equivalent.
+
+---
+
+45. COMPONENT ARCHITECTURE
+
+Create reusable components such as:
+
+Dashboard
+MainGoalCard
+ProgressBar
+AddSavingModal
+CategoryList
+CategoryCard
+SavingsHistory
+SavingsTransaction
+GoalCard
+GoalSelector
+SavingsCalendar
+AnalyticsChart
+StatCard
+MilestoneBanner
+StreakCard
+Settings
+
+Keep business logic separate from presentation.
+
+---
+
+46. IMPORTANT BUSINESS RULE
+
+The website must distinguish between:
+
+Total Money Saved by Category
+
+and
+
+Money Contributing to Main Goal
+
+Example:
+
+Job
+Total saved: ₹50,000
+Goal linked: ₹40,000
+Separate: ₹10,000
+
+Main Goal should only count:
+
+₹40,000
+
+Do not accidentally count all category money toward the goal.
+
+---
+
+47. TRANSACTION EXAMPLE
+
+User adds:
+
+₹2,000
+Category: Part-time
+Date: Today
+Goal: Main Goal
+
+Before:
+
+Part-time: ₹8,500
+Main Goal: ₹24,500
+
+After:
+
+Part-time: ₹10,500
+Main Goal: ₹26,500
+
+Remaining goal automatically changes.
+
+Progress automatically changes.
+
+Analytics automatically changes.
+
+No manual updating anywhere.
+
+---
+
+48. REAL-DATA REQUIREMENT
+
+This is extremely important:
+
+The application must NOT present fake financial numbers after deployment.
+
+Use demo/seed data only during development if necessary.
+
+For a real user:
+
+- Start with zero if they have no data.
+- Show only actual transactions entered by that user.
+- Calculate every total dynamically from database data.
+- Never hardcode ₹24,500, ₹70,000 or other sample values into the production dashboard.
+
+---
+
+49. UX PRINCIPLE
+
+Follow this principle throughout the entire application:
+
+«Less information, better presentation.»
+
+The user should not feel like they are managing accounts.
+
+They should feel:
+
+«“Every time I save money, I add it here and watch my goal get closer.”»
+
+---
+
+50. FINAL QUALITY REQUIREMENT
+
+Before considering the website complete, test the complete flow:
+
+1. Create account.
+2. Create main goal.
+3. Create custom category.
+4. Add saving.
+5. Verify category total.
+6. Verify main goal total.
+7. Add another saving from another category.
+8. Verify totals.
+9. Edit transaction.
+10. Verify recalculation.
+11. Delete transaction.
+12. Verify recalculation.
+13. Refresh page.
+14. Verify data persists.
+15. Logout.
+16. Login again.
+17. Verify data persists.
+18. Create second goal.
+19. Link a saving to the second goal.
+20. Switch main goal.
+21. Verify existing data remains correct.
+22. Test mobile layout.
+23. Test dark mode.
+24. Test empty states.
+25. Test invalid amounts.
+26. Test goal completion.
+27. Test target-date calculations.
+
+Fix all bugs before completion.
+
+---
+
+FINAL DESIGN DIRECTION
+
+Build the product as a beautiful personal savings companion, not a traditional finance/accounting application.
+
+The most important interaction is:
+
+SAVE MONEY → SELECT SOURCE → LINK TO GOAL → WATCH PROGRESS
+
+The interface should be so simple that a user can add today's saving in seconds.
+
+Use real persistent financial data, Indian Rupee formatting, custom categories, goal linking, automatic calculations, and a clean interactive mobile-first UI.
+
+The final product should feel polished enough to be used as a real personal savings application.
