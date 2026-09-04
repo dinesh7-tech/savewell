@@ -1,0 +1,54 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Job",
+      "icon": "briefcase",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 2,
+      "name": "Part-time",
+      "icon": "laptop",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 3,
+      "name": "Freelance",
+      "icon": "palette",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 4,
+      "name": "Content",
+      "icon": "smartphone",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 5,
+      "name": "Business",
+      "icon": "store",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 6,
+      "name": "Gift",
+      "icon": "gift",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 7,
+      "name": "Investment",
+      "icon": "trending-up",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    },
+    {
+      "id": 8,
+      "name": "Other",
+      "icon": "coins",
+      "createdAt": "2026-09-04T14:50:48.125431+00:00"
+    }
+  ],
+  "goals": [],
+  "savings": []
+}

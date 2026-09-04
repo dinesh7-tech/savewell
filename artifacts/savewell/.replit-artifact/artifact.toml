@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Savewell"
+description = "A personal savings companion for setting goals, logging money saved by source, and watching progress grow with real persistent data."
+version = "1.0.0"
+id = "artifacts/savewell"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18698
+
+[services.development]
+run = "pnpm --filter @workspace/savewell run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/savewell", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/savewell/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18698"
+BASE_PATH = "/"

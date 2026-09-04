@@ -3,13 +3,23 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Savewell savings tracker API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard aggregates
+  - name: goals
+    description: Savings goals
+  - name: categories
+    description: Money source categories
+  - name: savings
+    description: Savings transactions
+  - name: analytics
+    description: Savings analytics
 paths:
   /healthz:
     get:
@@ -24,13 +34,449 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get the current user's dashboard
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /goals:
+    get:
+      operationId: listGoals
+      tags: [goals]
+      summary: List the current user's goals
+      responses:
+        "200":
+          description: Goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Goal"
+    post:
+      operationId: createGoal
+      tags: [goals]
+      summary: Create a savings goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalInput"
+      responses:
+        "201":
+          description: Created goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /goals/{id}:
+    patch:
+      operationId: updateGoal
+      tags: [goals]
+      summary: Update a savings goal
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalUpdate"
+      responses:
+        "200":
+          description: Updated goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteGoal
+      tags: [goals]
+      summary: Delete a savings goal
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List the current user's savings categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a savings category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /categories/{id}:
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a savings category
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdate"
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete a savings category
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /savings:
+    get:
+      operationId: listSavings
+      tags: [savings]
+      summary: List the current user's savings transactions
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: goalId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Savings transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Saving"
+    post:
+      operationId: createSaving
+      tags: [savings]
+      summary: Record a saving
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavingInput"
+      responses:
+        "201":
+          description: Created saving
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Saving"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /savings/{id}:
+    patch:
+      operationId: updateSaving
+      tags: [savings]
+      summary: Update a saving
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavingUpdate"
+      responses:
+        "200":
+          description: Updated saving
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Saving"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteSaving
+      tags: [savings]
+      summary: Delete a saving
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [analytics]
+      summary: Get savings analytics
+      parameters:
+        - name: range
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [7d, 30d, 3m, 6m, 1y, all]
+            default: 30d
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
 components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    Goal:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        icon: { type: string }
+        targetPaise: { type: integer, minimum: 1 }
+        startingPaise: { type: integer, minimum: 0 }
+        savedPaise: { type: integer, minimum: 0 }
+        targetDate: { type: ["string", "null"], format: date }
+        description: { type: ["string", "null"] }
+        isMain: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, icon, targetPaise, startingPaise, savedPaise, targetDate, description, isMain, createdAt]
+    GoalInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        icon: { type: string, minLength: 1, maxLength: 8 }
+        targetPaise: { type: integer, minimum: 1 }
+        startingPaise: { type: integer, minimum: 0 }
+        targetDate: { type: ["string", "null"], format: date }
+        description: { type: ["string", "null"], maxLength: 240 }
+        isMain: { type: boolean }
+      required: [name, icon, targetPaise, startingPaise, isMain]
+    GoalUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        icon: { type: string, minLength: 1, maxLength: 8 }
+        targetPaise: { type: integer, minimum: 1 }
+        targetDate: { type: ["string", "null"], format: date }
+        description: { type: ["string", "null"], maxLength: 240 }
+        isMain: { type: boolean }
+    Category:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        icon: { type: string }
+        totalPaise: { type: integer, minimum: 0 }
+        linkedPaise: { type: integer, minimum: 0 }
+        entryCount: { type: integer, minimum: 0 }
+      required: [id, name, icon, totalPaise, linkedPaise, entryCount]
+    CategoryInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        icon: { type: string, minLength: 1, maxLength: 8 }
+      required: [name, icon]
+    CategoryUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        icon: { type: string, minLength: 1, maxLength: 8 }
+    Saving:
+      type: object
+      properties:
+        id: { type: integer }
+        amountPaise: { type: integer, minimum: 1 }
+        categoryId: { type: integer }
+        categoryName: { type: string }
+        categoryIcon: { type: string }
+        goalId: { type: ["integer", "null"] }
+        goalName: { type: ["string", "null"] }
+        date: { type: string, format: date }
+        note: { type: ["string", "null"] }
+        isGoalLinked: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, amountPaise, categoryId, categoryName, categoryIcon, goalId, goalName, date, note, isGoalLinked, createdAt]
+    SavingInput:
+      type: object
+      properties:
+        amountPaise: { type: integer, minimum: 1 }
+        categoryId: { type: integer, minimum: 1 }
+        goalId: { type: ["integer", "null"] }
+        date: { type: string, format: date }
+        note: { type: ["string", "null"], maxLength: 240 }
+        isGoalLinked: { type: boolean }
+      required: [amountPaise, categoryId, date, isGoalLinked]
+    SavingUpdate:
+      type: object
+      properties:
+        amountPaise: { type: integer, minimum: 1 }
+        categoryId: { type: integer, minimum: 1 }
+        goalId: { type: ["integer", "null"] }
+        date: { type: string, format: date }
+        note: { type: ["string", "null"], maxLength: 240 }
+        isGoalLinked: { type: boolean }
+    Dashboard:
+      type: object
+      properties:
+        mainGoal:
+          oneOf:
+            - $ref: "#/components/schemas/Goal"
+            - type: "null"
+        goals:
+          type: array
+          items: { $ref: "#/components/schemas/Goal" }
+        categories:
+          type: array
+          items: { $ref: "#/components/schemas/Category" }
+        recentSavings:
+          type: array
+          items: { $ref: "#/components/schemas/Saving" }
+        summary: { $ref: "#/components/schemas/Summary" }
+        streak: { $ref: "#/components/schemas/Streak" }
+        insight: { type: ["string", "null"] }
+      required: [mainGoal, goals, categories, recentSavings, summary, streak, insight]
+    Summary:
+      type: object
+      properties:
+        todayPaise: { type: integer, minimum: 0 }
+        weekPaise: { type: integer, minimum: 0 }
+        monthPaise: { type: integer, minimum: 0 }
+        totalPaise: { type: integer, minimum: 0 }
+      required: [todayPaise, weekPaise, monthPaise, totalPaise]
+    Streak:
+      type: object
+      properties:
+        current: { type: integer, minimum: 0 }
+        best: { type: integer, minimum: 0 }
+      required: [current, best]
+    Analytics:
+      type: object
+      properties:
+        range: { type: string }
+        totalPaise: { type: integer, minimum: 0 }
+        averagePaise: { type: integer, minimum: 0 }
+        bestDay: { type: ["string", "null"], format: date }
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsCategory"
+        byDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsDay"
+      required: [range, totalPaise, averagePaise, bestDay, byCategory, byDay]
+    AnalyticsCategory:
+      type: object
+      properties:
+        name: { type: string }
+        icon: { type: string }
+        totalPaise: { type: integer, minimum: 0 }
+      required: [name, icon, totalPaise]
+    AnalyticsDay:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        totalPaise: { type: integer, minimum: 0 }
+      required: [date, totalPaise]
