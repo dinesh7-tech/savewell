@@ -176,16 +176,114 @@ function useSupabaseRealtime(userId?: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Component Helpers
+// SaveWell Logo & Icon Vector System
 // ---------------------------------------------------------------------------
-function Brand({ light = false }: { light?: boolean }) {
+export function SaveWellIcon({
+  size = 36,
+  className = '',
+  light = false,
+  variant = 'badge',
+}: {
+  size?: number;
+  className?: string;
+  light?: boolean;
+  variant?: 'badge' | 'glyph';
+}) {
+  const isBadge = variant === 'badge';
+  const tileFill = light ? '#e8dccb' : '#1b382b';
+  const strokeColor = light ? '#1b382b' : '#fcfaf5';
+  const accentColor = '#c6784e';
+
+  if (!isBadge) {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 36 36"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="SaveWell Icon"
+        className={`shrink-0 ${className}`}
+      >
+        <path
+          d="M23.5 11C23.5 11 15 10.5 13 14.5C11.2 18.2 15.8 19.8 18.5 20.8C21.8 22 25 23.5 25 27.2C25 31.2 20.2 32.5 15.5 32.5C11.5 32.5 10.5 29.5 10.5 29.5"
+          stroke="currentColor"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="26" cy="10" r="2.4" fill={accentColor} />
+      </svg>
+    );
+  }
+
   return (
-    <Link href="/" className={`flex items-center gap-2.5 ${light ? 'text-[#fbf5e8]' : 'text-foreground'}`}>
-      <span className={`grid h-9 w-9 place-items-center rounded-xl ${light ? 'bg-accent text-foreground' : 'bg-primary text-background'}`}>
-        <CircleDollarSign size={20} strokeWidth={2.4} />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 36 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="SaveWell Icon"
+      className={`shrink-0 transition-transform ${className}`}
+    >
+      <rect width="36" height="36" rx="10" fill={tileFill} />
+      <path
+        d="M23.5 11C23.5 11 15 10.5 13 14.5C11.2 18.2 15.8 19.8 18.5 20.8C21.8 22 25 23.5 25 27.2C25 31.2 20.2 32.5 15.5 32.5C11.5 32.5 10.5 29.5 10.5 29.5"
+        stroke={strokeColor}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="26" cy="10" r="2.4" fill={accentColor} />
+    </svg>
+  );
+}
+
+export function Brand({
+  light = false,
+  size = 'md',
+  className = '',
+}: {
+  light?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
+  const iconSizes = { sm: 28, md: 36, lg: 44 };
+  const textSizes = {
+    sm: 'text-lg',
+    md: 'text-[22px]',
+    lg: 'text-3xl sm:text-4xl',
+  };
+
+  return (
+    <Link
+      href="/"
+      aria-label="SaveWell Home"
+      className={`inline-flex items-center gap-2.5 select-none ${
+        light ? 'text-[#fbf5e8]' : 'text-foreground'
+      } ${className}`}
+    >
+      <SaveWellIcon size={iconSizes[size]} light={light} />
+      <span className={`font-display font-bold leading-none tracking-[-0.035em] ${textSizes[size]}`}>
+        Save<span className={light ? 'text-accent' : 'text-[#b86e48]'}>Well</span>
       </span>
-      <span className="font-display text-[22px] leading-none tracking-[-.03em]">savewell</span>
     </Link>
+  );
+}
+
+export function FooterCredit({ className = '' }: { className?: string }) {
+  return (
+    <div className={`flex items-center justify-center text-center ${className}`}>
+      <a
+        href="https://dineshpicks.in"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block font-mono-ui text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/75 hover:text-foreground transition-colors"
+      >
+        CREATED BY DINESHPICKS.IN
+      </a>
+    </div>
   );
 }
 
@@ -263,8 +361,8 @@ function LoadingSkeleton() {
 function Landing() {
   const { user } = useAuth();
   return (
-    <div className="min-h-[100dvh] overflow-hidden">
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
+    <div className="min-h-[100dvh] flex flex-col justify-between overflow-hidden">
+      <header className="mx-auto w-full flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
         <Brand />
         <div className="flex items-center gap-2">
           {user ? (
@@ -283,7 +381,7 @@ function Landing() {
           )}
         </div>
       </header>
-      <main>
+      <main className="flex-1">
         <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-10 lg:pb-28 lg:pt-20">
           <div className="rise-in">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 font-mono-ui text-[10px] uppercase tracking-[.16em] text-muted-foreground">
@@ -293,7 +391,7 @@ function Landing() {
               Small steps.<br /><span className="text-[#b86e48]">Real somewhere.</span>
             </h1>
             <p className="mt-7 max-w-lg text-lg leading-8 text-muted-foreground">
-              Savewell turns the money you set aside into a clear, encouraging picture of what you’re building in real-time.
+              SaveWell turns the money you set aside into a clear, encouraging picture of what you’re building in real-time.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href={user ? "/dashboard" : "/sign-up"} className="touch-target group inline-flex items-center gap-3 rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:-translate-y-0.5 hover:shadow-lg">
@@ -328,6 +426,12 @@ function Landing() {
           </div>
         </section>
       </main>
+      <footer className="border-t border-border/40 py-8 px-5">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Brand size="sm" />
+          <FooterCredit />
+        </div>
+      </footer>
     </div>
   );
 }
@@ -387,13 +491,14 @@ function AuthPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'sign-up' | 'forgot
   };
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-10">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-[440px] rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-2xl">
         <div className="mb-6 text-center">
-          <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-background shadow-md">
-            <CircleDollarSign size={28} strokeWidth={2.4} />
+          <div className="mx-auto flex justify-center">
+            <SaveWellIcon size={52} />
           </div>
-          <h1 className="mt-4 font-display text-3xl tracking-tight">
+          <p className="mt-3 font-mono-ui text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">SaveWell</p>
+          <h1 className="mt-1 font-display text-3xl tracking-tight">
             {authMode === 'sign-up' ? 'Create Account' : authMode === 'forgot' ? 'Reset Password' : 'Welcome Back'}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -495,6 +600,9 @@ function AuthPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'sign-up' | 'forgot
           )}
         </form>
       </div>
+      <div className="mt-6 text-center">
+        <FooterCredit />
+      </div>
     </div>
   );
 }
@@ -565,6 +673,9 @@ function Shell({ children }: { children: React.ReactNode }) {
               <LogOut size={17} />
             </button>
           </div>
+          <div className="mt-3 text-center">
+            <FooterCredit className="opacity-60 hover:opacity-100 transition-opacity" />
+          </div>
         </div>
       </aside>
 
@@ -577,7 +688,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             <button className="touch-target grid h-10 w-10 place-items-center rounded-lg hover:bg-muted md:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu size={22} />
             </button>
-            <Brand />
+            <Brand size="sm" />
           </div>
           <div className="hidden md:block">
             <p className="font-mono-ui text-[10px] uppercase tracking-[.17em] text-muted-foreground">Personal Savings Tracker</p>
@@ -593,6 +704,11 @@ function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="mx-auto max-w-[1240px] px-4 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">{children}</main>
+
+        {/* Global Footer Credit */}
+        <footer className="mx-auto max-w-[1240px] px-4 py-8 text-center border-t border-border/30 mt-8 mb-20 md:mb-4">
+          <FooterCredit />
+        </footer>
 
         {/* Mobile Bottom Navigation Bar (Strict Prompt Requirement #5 & #6) */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-16 border-t border-border/80 bg-background/95 backdrop-blur-xl md:hidden safe-area-bottom shadow-lg">
