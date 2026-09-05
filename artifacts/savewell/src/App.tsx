@@ -1199,29 +1199,60 @@ function GoalsPage() {
   }, [goals, savings]);
 
   const saveGoal = async (form: any) => {
-    const isMain = form.is_main;
+    if (!user?.id) {
+      throw new Error('Authentication required to save a goal.');
+    }
+
+    const trimmedName = form.name?.trim();
+    if (!trimmedName) {
+      throw new Error('Goal name is required.');
+    }
+
+    const targetAmount = Number(form.target_amount);
+    if (!targetAmount || isNaN(targetAmount) || targetAmount <= 0) {
+      throw new Error('Target amount must be a positive number greater than ₹0.');
+    }
+
+    const startingAmount = Number(form.starting_amount || 0);
+    if (isNaN(startingAmount) || startingAmount < 0) {
+      throw new Error('Already saved amount must be ₹0 or greater.');
+    }
+
+    const isMain = Boolean(form.is_main);
     if (isMain) {
-      await supabase.from('goals').update({ is_main: false }).eq('user_id', user.id);
+      const { error: resetErr } = await supabase.from('goals').update({ is_main: false }).eq('user_id', user.id);
+      if (resetErr) {
+        console.error('Reset main goal error:', resetErr);
+      }
     }
 
     const payload = {
       user_id: user.id,
-      name: form.name.trim(),
+      name: trimmedName,
       icon: form.icon || '🎯',
-      target_amount: Number(form.target_amount),
-      starting_amount: Number(form.starting_amount || 0),
-      target_date: form.target_date || null,
+      target_amount: targetAmount,
+      starting_amount: startingAmount,
+      target_date: form.target_date?.trim() || null,
       description: form.description?.trim() || null,
       is_main: goals.length === 0 || isMain,
     };
 
-    if (modal.goal) {
-      await supabase.from('goals').update(payload).eq('id', modal.goal.id);
+    if (modal?.goal?.id) {
+      const { data, error } = await supabase.from('goals').update(payload).eq('id', modal.goal.id).select();
+      if (error) {
+        console.error('Update goal error:', error);
+        throw new Error(error.message || 'Failed to update goal.');
+      }
     } else {
-      await supabase.from('goals').insert(payload);
+      const { data, error } = await supabase.from('goals').insert(payload).select();
+      if (error) {
+        console.error('Insert goal error:', error);
+        throw new Error(error.message || 'Failed to create goal.');
+      }
     }
 
-    qc.invalidateQueries();
+    await qc.invalidateQueries({ queryKey: ['goals'] });
+    await qc.invalidateQueries({ queryKey: ['savings'] });
     setModal(null);
   };
 
@@ -1320,18 +1351,48 @@ function GoalModal({ initial, onClose, onSubmit }: any) {
   const [targetDate, setTargetDate] = useState(initial?.target_date || '');
   const [description, setDescription] = useState(initial?.description || '');
   const [isMain, setIsMain] = useState(initial?.is_main || false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      name,
-      icon,
-      target_amount: target,
-      starting_amount: starting,
-      target_date: targetDate,
-      description,
-      is_main: isMain,
-    });
+    if (submitting) return;
+    setError('');
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError('Please enter a goal name.');
+      return;
+    }
+
+    const targetNum = Number(target);
+    if (!targetNum || isNaN(targetNum) || targetNum <= 0) {
+      setError('Please enter a valid target amount greater than ₹0.');
+      return;
+    }
+
+    const startingNum = Number(starting || 0);
+    if (isNaN(startingNum) || startingNum < 0) {
+      setError('Already saved amount must be ₹0 or greater.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onSubmit({
+        name: trimmedName,
+        icon: icon || '🎯',
+        target_amount: targetNum,
+        starting_amount: startingNum,
+        target_date: targetDate,
+        description,
+        is_main: isMain,
+      });
+    } catch (err: any) {
+      console.error('Goal save error:', err);
+      setError(err?.message || 'Failed to save goal. Please try again.');
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1360,8 +1421,17 @@ function GoalModal({ initial, onClose, onSubmit }: any) {
           <input type="checkbox" checked={isMain} onChange={(e) => setIsMain(e.target.checked)} className="h-5 w-5 rounded text-primary focus:ring-accent" />
           <span><b>Make this my Main Goal</b><br /><small className="text-muted-foreground">Primary focus on dashboard</small></span>
         </label>
-        <Button type="submit" className="mt-2 w-full h-12">
-          {initial ? 'Update Goal' : 'Create Goal'} <ArrowRight size={17} />
+
+        {error && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3.5 text-xs font-semibold text-destructive">
+            {error}
+          </div>
+        )}
+
+        <Button disabled={submitting} type="submit" className="mt-2 w-full h-12">
+          {submitting ? <Loader2 className="animate-spin" size={17} /> : null}
+          {initial ? (submitting ? 'Updating Goal...' : 'Update Goal') : (submitting ? 'Creating Goal...' : 'Create Goal')}
+          {!submitting && <ArrowRight size={17} />}
         </Button>
       </form>
     </Modal>
