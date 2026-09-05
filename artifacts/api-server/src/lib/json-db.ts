@@ -37,17 +37,6 @@ export interface DBData {
   savings: Saving[];
 }
 
-const DEFAULT_CATEGORIES = [
-  { id: 1, name: "Job", icon: "briefcase" },
-  { id: 2, name: "Part-time", icon: "laptop" },
-  { id: 3, name: "Freelance", icon: "palette" },
-  { id: 4, name: "Content", icon: "smartphone" },
-  { id: 5, name: "Business", icon: "store" },
-  { id: 6, name: "Gift", icon: "gift" },
-  { id: 7, name: "Investment", icon: "trending-up" },
-  { id: 8, name: "Other", icon: "coins" },
-];
-
 const dataDir = path.resolve(process.cwd(), "data");
 const dbFilePath = path.join(dataDir, "savewell_db.json");
 
@@ -57,10 +46,7 @@ function ensureDbFile(): DBData {
   }
   if (!fs.existsSync(dbFilePath)) {
     const initial: DBData = {
-      categories: DEFAULT_CATEGORIES.map((c) => ({
-        ...c,
-        createdAt: new Date().toISOString(),
-      })),
+      categories: [],
       goals: [],
       savings: [],
     };
@@ -77,10 +63,7 @@ function ensureDbFile(): DBData {
     return data;
   } catch (err) {
     const initial: DBData = {
-      categories: DEFAULT_CATEGORIES.map((c) => ({
-        ...c,
-        createdAt: new Date().toISOString(),
-      })),
+      categories: [],
       goals: [],
       savings: [],
     };

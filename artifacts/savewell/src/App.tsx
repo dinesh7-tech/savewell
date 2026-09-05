@@ -56,17 +56,7 @@ export function getGreeting(): string {
   return 'Good evening 👋';
 }
 
-// Default category suggestions for user setup
-const DEFAULT_CATEGORY_SUGGESTIONS = [
-  { name: 'Job', icon: '💼' },
-  { name: 'Part-time', icon: '🧑‍💻' },
-  { name: 'Freelance', icon: '🎨' },
-  { name: 'Content', icon: '📱' },
-  { name: 'Business', icon: '🏪' },
-  { name: 'Gift', icon: '🎁' },
-  { name: 'Investment', icon: '📈' },
-  { name: 'Other', icon: '💰' },
-];
+
 
 // ---------------------------------------------------------------------------
 // Network Status Hook
@@ -529,8 +519,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   const links = [
     { href: '/dashboard', label: 'Home', icon: Home },
+    { href: '/categories', label: 'Categories', icon: Wallet },
     { href: '/goals', label: 'Goals', icon: Target },
-    { href: '/activity', label: 'Savings', icon: CircleDollarSign },
+    { href: '/activity', label: 'Activity', icon: CircleDollarSign },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/settings', label: 'Profile', icon: Settings },
   ];
@@ -679,24 +670,113 @@ function TransactionDetailModal({ saving, onClose, onDelete }: any) {
 }
 
 // ---------------------------------------------------------------------------
-// Add Saving Modal Component (Strict Requirement #3)
+// Category Modal Component (Create & Edit Money Source Categories)
 // ---------------------------------------------------------------------------
-function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
+function CategoryModal({ initial, onClose, onSubmit }: any) {
+  const [name, setName] = useState(initial?.name || '');
+  const [icon, setIcon] = useState(initial?.icon || '💰');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const PRESET_ICONS = ['💰', '💼', '💻', '📱', '🎨', '🏢', '🎁', '📈', '🚀', '⚡', '☕', '🏷️'];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+    setError('');
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError('Please enter a category name (e.g. YouTube, Salary, Freelance).');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onSubmit({
+        name: trimmedName,
+        icon: icon || '💰',
+      });
+    } catch (err: any) {
+      console.error('Category save error:', err);
+      setError(err?.message || 'Failed to save category. Please try again.');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal title={initial ? 'Edit Category' : 'New Savings Category'} eyebrow="Money Source" onClose={onClose}>
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-muted-foreground">Select or Type Icon</label>
+          <div className="flex flex-wrap gap-2 items-center">
+            <input
+              className="h-11 w-14 rounded-xl border border-input bg-card text-center text-xl outline-none focus:border-accent"
+              value={icon}
+              maxLength={4}
+              onChange={(e) => setIcon(e.target.value)}
+            />
+            <div className="flex flex-wrap gap-1.5 flex-1">
+              {PRESET_ICONS.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  onClick={() => setIcon(emoji)}
+                  className={`h-9 w-9 rounded-lg border text-lg transition flex items-center justify-center ${
+                    icon === emoji ? 'border-primary bg-primary/10 ring-2 ring-primary/30' : 'border-border bg-muted/40 hover:bg-muted'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Field
+          label="Category Name (Source of Saving)"
+          required
+          autoFocus
+          value={name}
+          onChange={(e: any) => setName(e.target.value)}
+          placeholder="e.g. YouTube, Salary, Freelance, Side Income"
+        />
+
+        {error && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3.5 text-xs font-semibold text-destructive">
+            {error}
+          </div>
+        )}
+
+        <Button disabled={submitting} type="submit" className="mt-2 w-full h-12">
+          {submitting ? <Loader2 className="animate-spin" size={17} /> : null}
+          {initial ? (submitting ? 'Updating...' : 'Update Category') : (submitting ? 'Creating...' : 'Create Category')}
+          {!submitting && <ArrowRight size={17} />}
+        </Button>
+      </form>
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Add Saving Modal Component
+// ---------------------------------------------------------------------------
+function AddSavingModal({ onClose, categories = [], goals = [], defaultCategoryId = '', onOpenAddCategory }: any) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const isOnline = useNetworkStatus();
   const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || '');
-  const [goalId, setGoalId] = useState(goals.find((g: any) => g.is_main)?.id || '');
+  const [categoryId, setCategoryId] = useState(defaultCategoryId || categories[0]?.id || '');
+  const [goalId, setGoalId] = useState(goals.find((g: any) => g.is_main)?.id || (goals[0]?.id || ''));
   const [date, setDate] = useState(todayStr());
   const [note, setNote] = useState('');
-  const [isGoalLinked, setIsGoalLinked] = useState(true);
+  const [isGoalLinked, setIsGoalLinked] = useState(false); // Goal linking is optional
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return; // Prevent double submission
+    if (submitting) return;
     setError('');
 
     if (!isOnline) {
@@ -710,7 +790,7 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
       return;
     }
     if (!categoryId) {
-      setError('Please select a money source category');
+      setError('Please select or create a savings category');
       return;
     }
 
@@ -724,25 +804,29 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
       date: date,
       saving_date: date,
       note: note.trim() || null,
-      is_goal_linked: isGoalLinked && Boolean(goalId),
+      is_goal_linked: Boolean(isGoalLinked && goalId),
     };
 
     const { error: err } = await supabase.from('savings').insert(savingData);
     setSubmitting(false);
 
     if (err) {
+      console.error('Saving insert error:', err);
       setError(err.message || 'Failed to record saving transaction.');
     } else {
-      qc.invalidateQueries();
+      await qc.invalidateQueries({ queryKey: ['savings'] });
+      await qc.invalidateQueries({ queryKey: ['categories'] });
+      await qc.invalidateQueries({ queryKey: ['goals'] });
       onClose();
     }
   };
 
+  const selectedCategory = categories.find((c: any) => c.id === categoryId);
   const selectedGoal = goals.find((g: any) => g.id === goalId);
 
   return (
-    <Modal title="Add Saving" eyebrow="Quick Deposit" onClose={onClose}>
-      <form className="grid gap-5 pb-4" onSubmit={submit}>
+    <Modal title="Add Saving" eyebrow="Record Deposit" onClose={onClose}>
+      <form className="grid gap-5 pb-2" onSubmit={submit}>
         <label className="grid gap-2 text-sm font-medium">
           <span className="text-muted-foreground font-semibold">How much did you save?</span>
           <div className="flex items-center rounded-2xl border-2 border-primary/30 bg-card px-4 py-1 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15 transition-all shadow-sm">
@@ -757,40 +841,66 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
               required
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="500"
+              placeholder="1000"
             />
           </div>
         </label>
 
-        {/* Category Chip Selector (Req #3 & #19) */}
+        {/* Category Selection (Source of Saving) */}
         <div className="grid gap-2">
-          <span className="text-sm font-semibold text-muted-foreground">Where did it come from?</span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-48 overflow-y-auto pr-1">
-            {categories.map((c: any) => {
-              const isSelected = c.id === categoryId;
-              return (
-                <button
-                  type="button"
-                  key={c.id}
-                  onClick={() => setCategoryId(c.id)}
-                  className={`touch-target flex items-center gap-2.5 rounded-xl p-3 text-xs font-semibold border transition ${
-                    isSelected
-                      ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/30'
-                      : 'border-border bg-card text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <span className="text-lg">{c.icon}</span>
-                  <span className="truncate text-sm">{c.name}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-muted-foreground">Source Category (Where from?)</span>
+            {onOpenAddCategory && (
+              <button
+                type="button"
+                onClick={onOpenAddCategory}
+                className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+              >
+                <Plus size={13} /> New Category
+              </button>
+            )}
           </div>
+
+          {categories.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
+              {categories.map((c: any) => {
+                const isSelected = c.id === categoryId;
+                return (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => setCategoryId(c.id)}
+                    className={`touch-target flex items-center gap-2 rounded-xl p-2.5 text-xs font-semibold border transition text-left ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/30'
+                        : 'border-border bg-card text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span className="text-lg shrink-0">{c.icon}</span>
+                    <span className="truncate">{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border bg-muted/40 p-4 text-center">
+              <p className="text-xs text-muted-foreground">No categories created yet.</p>
+              {onOpenAddCategory && (
+                <Button type="button" variant="outline" className="mt-2 h-9 text-xs" onClick={onOpenAddCategory}>
+                  <Plus size={14} /> Create a Category (e.g. Salary, YouTube)
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Goal Link Options */}
+        {/* Goal Link Options (Purpose of Saving - Optional) */}
         <div className="rounded-2xl border border-border bg-muted/40 p-4 space-y-3">
           <label className="flex items-center justify-between text-sm font-semibold cursor-pointer">
-            <span>Add to Main Goal</span>
+            <span className="flex items-center gap-2">
+              <Target size={16} className="text-primary" />
+              <span>Link this saving to a Goal (Optional)</span>
+            </span>
             <input
               type="checkbox"
               checked={isGoalLinked}
@@ -800,32 +910,39 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
           </label>
 
           {isGoalLinked && (
-            <select
-              className="h-12 w-full rounded-xl border border-input bg-card px-3.5 text-sm outline-none focus:border-accent"
-              value={goalId}
-              onChange={(e) => setGoalId(e.target.value)}
-            >
-              <option value="">Select a Goal</option>
-              {goals.map((g: any) => (
-                <option key={g.id} value={g.id}>{g.icon} {g.name} {g.is_main ? '(Main Goal)' : ''}</option>
-              ))}
-            </select>
+            <div className="space-y-2 pt-1">
+              {goals.length > 0 ? (
+                <select
+                  className="h-12 w-full rounded-xl border border-input bg-card px-3.5 text-sm outline-none focus:border-accent"
+                  value={goalId}
+                  onChange={(e) => setGoalId(e.target.value)}
+                >
+                  {goals.map((g: any) => (
+                    <option key={g.id} value={g.id}>
+                      {g.icon} {g.name} {g.is_main ? '(Main Goal)' : ''}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-xs text-muted-foreground">No goals created yet. You can create goals from the Goals tab.</p>
+              )}
+            </div>
           )}
 
-          {isGoalLinked && goalId ? (
+          {isGoalLinked && goalId && selectedGoal ? (
             <p className="text-xs text-[#39715c] font-medium flex items-center gap-1.5">
-              <Check size={15} /> Contributes directly to {selectedGoal?.name || 'goal'}.
+              <Check size={15} /> Adds ₹{amount || '0'} to <b>{selectedCategory?.name || 'Category'}</b> AND updates <b>{selectedGoal.name}</b> progress.
             </p>
           ) : (
             <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-              <Info size={15} /> Recorded under category & total savings, but not added to Goal progress.
+              <Info size={15} /> Flexible saving: increases <b>{selectedCategory?.name || 'Category'}</b> and Total Saved without locking to a goal.
             </p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Date" type="date" value={date} onChange={(e: any) => setDate(e.target.value)} />
-          <Field label="Note (optional)" value={note} onChange={(e: any) => setNote(e.target.value)} placeholder="Context" />
+          <Field label="Note (optional)" value={note} onChange={(e: any) => setNote(e.target.value)} placeholder="e.g. Bonus, AdSense" />
         </div>
 
         {error && (
@@ -834,7 +951,7 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
           </div>
         )}
 
-        <Button disabled={submitting} type="submit" className="h-14 text-base font-bold shadow-lg mt-1 w-full">
+        <Button disabled={submitting || (categories.length === 0 && !categoryId)} type="submit" className="h-14 text-base font-bold shadow-lg mt-1 w-full">
           {submitting ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
           {submitting ? 'Saving deposit...' : 'Save Saving'}
         </Button>
@@ -849,20 +966,15 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
 function Dashboard() {
   const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedSaving, setSelectedSaving] = useState<any>(null);
 
-  // 1. Fetch User Categories from Supabase PostgreSQL
+  // 1. Fetch User Categories from Supabase PostgreSQL (NO auto-seeding)
   const categoriesQuery = useQuery({
     queryKey: ['categories', user.id],
     queryFn: async () => {
-      let { data, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+      const { data, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
       if (error) throw error;
-      
-      if (!data || data.length === 0) {
-        const seedPayload = DEFAULT_CATEGORY_SUGGESTIONS.map(c => ({ user_id: user.id, name: c.name, icon: c.icon }));
-        const { data: seeded } = await supabase.from('categories').insert(seedPayload).select();
-        data = seeded || [];
-      }
       return data || [];
     },
   });
@@ -892,6 +1004,7 @@ function Dashboard() {
     },
   });
 
+  const qc = useQueryClient();
   const isLoading = categoriesQuery.isLoading || goalsQuery.isLoading || savingsQuery.isLoading;
 
   const categories = categoriesQuery.data || [];
@@ -901,12 +1014,16 @@ function Dashboard() {
   // Goal saved amount = starting_amount + SUM(savings where is_goal_linked = true and goal_id = goal.id)
   const goalsWithCalculatedAmounts = useMemo(() => {
     return goals.map((g: any) => {
+      const targetAmt = g.target_amount != null ? Number(g.target_amount) : Number(g.target_paise || 0) / 100;
+      const startingAmt = g.starting_amount != null ? Number(g.starting_amount) : Number(g.starting_paise || 0) / 100;
       const linkedDeposits = savings
         .filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false)
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        .reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
       return {
         ...g,
-        saved_amount: Number(g.starting_amount || 0) + linkedDeposits,
+        target_amount: targetAmt,
+        starting_amount: startingAmt,
+        saved_amount: startingAmt + linkedDeposits,
       };
     });
   }, [goals, savings]);
@@ -917,7 +1034,7 @@ function Dashboard() {
   const categoriesWithTotals = useMemo(() => {
     return categories.map((c: any) => {
       const catSavings = savings.filter((s: any) => s.category_id === c.id);
-      const total = catSavings.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+      const total = catSavings.reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
       return {
         ...c,
         total_amount: total,
@@ -930,13 +1047,13 @@ function Dashboard() {
   const today = todayStr();
   const currentMonthPrefix = today.slice(0, 7);
 
-  const todayTotal = savings.filter((s: any) => s.saving_date === today).reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
-  const monthTotal = savings.filter((s: any) => (s.saving_date || '').startsWith(currentMonthPrefix)).reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
-  const totalSaved = savings.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+  const todayTotal = savings.filter((s: any) => (s.saving_date || s.date) === today).reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
+  const monthTotal = savings.filter((s: any) => (s.saving_date || s.date || '').startsWith(currentMonthPrefix)).reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
+  const totalSaved = savings.reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
 
   // Real Saving Streak calculation
   const streak = useMemo(() => {
-    const dates = Array.from(new Set(savings.map((s: any) => (s.saving_date || '').slice(0, 10)).filter(Boolean))).sort().reverse();
+    const dates = Array.from(new Set(savings.map((s: any) => (s.saving_date || s.date || '').slice(0, 10)).filter(Boolean))).sort().reverse();
     if (dates.length === 0) return 0;
     const dateSet = new Set(dates);
     let current = 0;
@@ -959,9 +1076,21 @@ function Dashboard() {
   const deleteSavingFromDetail = async (s: any) => {
     if (window.confirm(`Delete saving entry of ${formatINR(s.amount)}?`)) {
       await supabase.from('savings').delete().eq('id', s.id);
-      queryClient.invalidateQueries();
+      qc.invalidateQueries();
       setSelectedSaving(null);
     }
+  };
+
+  const saveCategoryFromDashboard = async (form: any) => {
+    const payload = {
+      user_id: user.id,
+      name: form.name.trim(),
+      icon: form.icon || '💰',
+    };
+    const { error } = await supabase.from('categories').insert(payload);
+    if (error) throw new Error(error.message || 'Failed to create category.');
+    await qc.invalidateQueries({ queryKey: ['categories'] });
+    setShowCategoryModal(false);
   };
 
   if (isLoading) {
@@ -975,7 +1104,7 @@ function Dashboard() {
 
   return (
     <>
-      {/* 1. Greeting Header (Section 2 Mobile Hierarchy) */}
+      {/* 1. Greeting Header */}
       <div className="mb-6">
         <h1 className="font-display text-3xl sm:text-4xl tracking-tight">
           {getGreeting()}
@@ -1037,12 +1166,12 @@ function Dashboard() {
           />
         )}
 
-        {/* 3. [ + Add Saving ] Prominent Action Button */}
+        {/* 3. [ + Add Saving ] Action Button */}
         <Button onClick={() => setShowAddModal(true)} className="h-14 text-base font-bold shadow-md w-full">
           <Plus size={20} /> + Add Saving
         </Button>
 
-        {/* 4. Today & This Month Summary Cards (2-Column Mobile Layout) */}
+        {/* 4. Today & This Month Summary Cards */}
         <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today</p>
@@ -1098,10 +1227,10 @@ function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{s.categories?.name || 'Saving'}</p>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {s.is_goal_linked && s.goals?.name ? `For ${s.goals.name}` : s.note || 'Flexible deposit'} · {shortDate(s.saving_date)}
+                        {s.is_goal_linked && s.goals?.name ? `For ${s.goals.name}` : s.note || 'Flexible deposit'} · {shortDate(s.saving_date || s.date)}
                       </p>
                     </div>
-                    <p className="font-mono-ui text-sm sm:text-base font-bold text-[#39715c]">+{formatINR(s.amount)}</p>
+                    <p className="font-mono-ui text-sm sm:text-base font-bold text-[#39715c]">+{formatINR(s.amount != null ? s.amount : (s.amount_paise || 0) / 100)}</p>
                   </div>
                 ))}
               </div>
@@ -1118,24 +1247,34 @@ function Dashboard() {
             )}
           </section>
 
-          {/* Money Sources */}
+          {/* Money Sources (Categories) */}
           <section>
             <div className="mb-3.5 flex items-center justify-between">
               <h2 className="font-display text-2xl">Money Sources</h2>
               <Link href="/categories" className="touch-target text-xs font-semibold text-muted-foreground hover:text-foreground">Manage</Link>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-2 space-y-1">
-              {categoriesWithTotals.slice(0, 5).map((c: any) => (
-                <div className="flex items-center gap-3 rounded-xl p-3 hover:bg-muted/60" key={c.id}>
-                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary text-base">{c.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-semibold">{c.name}</p>
-                    <p className="text-xs text-muted-foreground">{c.entry_count} deposits</p>
+            {categoriesWithTotals.length ? (
+              <div className="rounded-2xl border border-border bg-card p-2 space-y-1">
+                {categoriesWithTotals.slice(0, 5).map((c: any) => (
+                  <div className="flex items-center gap-3 rounded-xl p-3 hover:bg-muted/60" key={c.id}>
+                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary text-base">{c.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-semibold">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">{c.entry_count} deposits</p>
+                    </div>
+                    <p className="font-mono-ui text-sm font-bold">{formatINR(c.total_amount)}</p>
                   </div>
-                  <p className="font-mono-ui text-sm font-bold">{formatINR(c.total_amount)}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center">
+                <p className="text-sm font-semibold text-foreground">No categories yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">Add your money sources (e.g. Salary, YouTube) to start tracking.</p>
+                <Button onClick={() => setShowCategoryModal(true)} className="mt-3.5 h-9 text-xs">
+                  <Plus size={14} /> Add Category
+                </Button>
+              </div>
+            )}
           </section>
         </div>
       </div>
@@ -1145,6 +1284,17 @@ function Dashboard() {
           onClose={() => setShowAddModal(false)}
           categories={categories}
           goals={goals}
+          onOpenAddCategory={() => {
+            setShowAddModal(false);
+            setShowCategoryModal(true);
+          }}
+        />
+      )}
+
+      {showCategoryModal && (
+        <CategoryModal
+          onClose={() => setShowCategoryModal(false)}
+          onSubmit={saveCategoryFromDashboard}
         />
       )}
 
@@ -1153,6 +1303,240 @@ function Dashboard() {
           saving={selectedSaving}
           onClose={() => setSelectedSaving(null)}
           onDelete={deleteSavingFromDetail}
+        />
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Categories View (Money Sources Management & Goal Linking Overview)
+// ---------------------------------------------------------------------------
+function CategoriesPage() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [modal, setModal] = useState<any>(null);
+  const [savingCategory, setSavingCategory] = useState<any>(null);
+
+  const categoriesQuery = useQuery({
+    queryKey: ['categories', user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const savingsQuery = useQuery({
+    queryKey: ['savings', user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('savings').select('*').eq('user_id', user.id);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const goalsQuery = useQuery({
+    queryKey: ['goals', user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('goals').select('*').eq('user_id', user.id);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const categories = categoriesQuery.data || [];
+  const savings = savingsQuery.data || [];
+  const goals = goalsQuery.data || [];
+
+  const categoriesWithCalculated = useMemo(() => {
+    return categories.map((c: any) => {
+      const catSavings = savings.filter((s: any) => s.category_id === c.id);
+      const totalAmount = catSavings.reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
+      const goalLinkedAmount = catSavings
+        .filter((s: any) => s.is_goal_linked && s.goal_id)
+        .reduce((sum: number, s: any) => sum + (s.amount != null ? Number(s.amount) : Number(s.amount_paise || 0) / 100), 0);
+      const flexibleAmount = Math.max(0, totalAmount - goalLinkedAmount);
+
+      return {
+        ...c,
+        total_amount: totalAmount,
+        goal_linked_amount: goalLinkedAmount,
+        flexible_amount: flexibleAmount,
+        entry_count: catSavings.length,
+      };
+    });
+  }, [categories, savings]);
+
+  const totalAllCategories = useMemo(() => {
+    return categoriesWithCalculated.reduce((sum: number, c: any) => sum + c.total_amount, 0);
+  }, [categoriesWithCalculated]);
+
+  const saveCategory = async (form: any) => {
+    const payload = {
+      user_id: user.id,
+      name: form.name.trim(),
+      icon: form.icon || '💰',
+    };
+
+    if (modal?.cat?.id) {
+      const { error } = await supabase.from('categories').update(payload).eq('id', modal.cat.id);
+      if (error) {
+        console.error('Update category error:', error);
+        throw new Error(error.message || 'Failed to update category.');
+      }
+    } else {
+      const { error } = await supabase.from('categories').insert(payload);
+      if (error) {
+        console.error('Insert category error:', error);
+        throw new Error(error.message || 'Failed to create category.');
+      }
+    }
+
+    await qc.invalidateQueries({ queryKey: ['categories'] });
+    setModal(null);
+  };
+
+  const deleteCategory = async (cat: any) => {
+    const linkedCount = savings.filter((s: any) => s.category_id === cat.id).length;
+    if (linkedCount > 0) {
+      alert(`Cannot delete category "${cat.name}" because you have ${linkedCount} savings transaction(s) recorded under it. To preserve your savings history and financial accuracy, active categories cannot be deleted.`);
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete the category "${cat.name}"?`)) {
+      const { error } = await supabase.from('categories').delete().eq('id', cat.id);
+      if (error) {
+        alert(error.message || 'Failed to delete category.');
+      } else {
+        await qc.invalidateQueries({ queryKey: ['categories'] });
+      }
+    }
+  };
+
+  return (
+    <>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono-ui text-[10px] uppercase tracking-[.18em] text-muted-foreground font-semibold">Money Sources</p>
+          <h1 className="mt-1 font-display text-4xl sm:text-5xl tracking-tight">Savings Categories.</h1>
+        </div>
+        <Button onClick={() => setModal({})}>
+          <Plus size={18} /> Add Category
+        </Button>
+      </div>
+
+      {/* Summary Banner */}
+      {categories.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Across Categories</p>
+            <p className="mt-1 font-mono-ui text-3xl font-bold text-foreground">{formatINR(totalAllCategories)}</p>
+          </div>
+          <div className="flex gap-2">
+            <span className="rounded-xl bg-secondary px-3.5 py-2 font-mono-ui text-xs font-semibold text-secondary-foreground">
+              {categories.length} {categories.length === 1 ? 'Category' : 'Categories'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {categoriesQuery.isLoading ? (
+        <LoadingSkeleton />
+      ) : categoriesWithCalculated.length ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categoriesWithCalculated.map((c: any) => (
+            <div
+              key={c.id}
+              className="flex flex-col justify-between rounded-3xl border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:border-border/80"
+            >
+              <div>
+                <div className="flex items-start justify-between">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-2xl shadow-xs">
+                    {c.icon}
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      className="touch-target rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => setModal({ cat: c })}
+                      title="Edit Category"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      className="touch-target rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => deleteCategory(c)}
+                      title="Delete Category"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h2 className="font-display text-2xl font-bold truncate">{c.name}</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{c.entry_count} {c.entry_count === 1 ? 'deposit' : 'deposits'}</p>
+                </div>
+
+                <div className="mt-5 space-y-2 rounded-2xl bg-muted/40 p-3.5 text-xs font-medium">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Saved:</span>
+                    <span className="font-mono-ui font-bold text-foreground">{formatINR(c.total_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Goal-Linked:</span>
+                    <span className="font-mono-ui font-semibold text-[#39715c]">{formatINR(c.goal_linked_amount)}</span>
+                  </div>
+                  {c.flexible_amount > 0 && (
+                    <div className="flex justify-between text-muted-foreground/80">
+                      <span>Flexible (Unlinked):</span>
+                      <span className="font-mono-ui">{formatINR(c.flexible_amount)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <Button
+                  onClick={() => setSavingCategory(c)}
+                  className="w-full h-11 text-xs font-bold gap-1.5"
+                  variant="outline"
+                >
+                  <Plus size={15} /> Add Saving to {c.name}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="No savings categories yet"
+          body="Create your own categories (e.g. YouTube, Salary, Freelance) to start categorizing where your savings come from."
+          action={
+            <Button onClick={() => setModal({})}>
+              <Plus size={16} /> + Add Category
+            </Button>
+          }
+        />
+      )}
+
+      {modal && (
+        <CategoryModal
+          initial={modal.cat}
+          onClose={() => setModal(null)}
+          onSubmit={saveCategory}
+        />
+      )}
+
+      {savingCategory && (
+        <AddSavingModal
+          onClose={() => setSavingCategory(null)}
+          categories={categories}
+          goals={goals}
+          defaultCategoryId={savingCategory.id}
+          onOpenAddCategory={() => {
+            setSavingCategory(null);
+            setModal({});
+          }}
         />
       )}
     </>
@@ -1445,109 +1829,6 @@ function GoalModal({ initial, onClose, onSubmit }: any) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Categories View (Money Sources Management)
-// ---------------------------------------------------------------------------
-function CategoriesPage() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState('💰');
-  const [submitting, setSubmitting] = useState(false);
-
-  const categoriesQuery = useQuery({
-    queryKey: ['categories', user.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const savingsQuery = useQuery({
-    queryKey: ['savings', user.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('savings').select('*').eq('user_id', user.id);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const categories = categoriesQuery.data || [];
-  const savings = savingsQuery.data || [];
-
-  const addCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSubmitting(true);
-    await supabase.from('categories').insert({ user_id: user.id, name: name.trim(), icon: icon || '💰' });
-    setSubmitting(false);
-    setName('');
-    qc.invalidateQueries();
-  };
-
-  const deleteCategory = async (cat: any) => {
-    const linkedCount = savings.filter((s: any) => s.category_id === cat.id).length;
-    if (linkedCount > 0) {
-      alert(`Cannot delete source "${cat.name}" because it has ${linkedCount} savings entries attached. Please re-assign or delete those savings first.`);
-      return;
-    }
-    if (window.confirm(`Delete money source "${cat.name}"?`)) {
-      await supabase.from('categories').delete().eq('id', cat.id);
-      qc.invalidateQueries();
-    }
-  };
-
-  return (
-    <>
-      <div className="mb-7">
-        <p className="font-mono-ui text-[10px] uppercase tracking-[.18em] text-muted-foreground font-semibold">Income Sources</p>
-        <h1 className="mt-1 font-display text-4xl sm:text-5xl tracking-tight">Money Sources.</h1>
-      </div>
-
-      <div className="grid max-w-3xl gap-5">
-        <form onSubmit={addCategory} className="flex gap-2 rounded-2xl border border-border bg-card p-4">
-          <input
-            className="h-12 w-14 rounded-xl border border-input bg-card text-center text-xl outline-none focus:border-accent"
-            value={icon}
-            maxLength={4}
-            onChange={(e) => setIcon(e.target.value)}
-          />
-          <input
-            className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-card px-3.5 text-base outline-none focus:border-accent"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="New source name (e.g. YouTube, Freelance)"
-            required
-          />
-          <Button type="submit" disabled={submitting} className="h-12">
-            <Plus size={17} /> Add Source
-          </Button>
-        </form>
-
-        <div className="grid gap-2.5">
-          {categories.map((c: any) => {
-            const catSavings = savings.filter((s: any) => s.category_id === c.id);
-            const total = catSavings.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
-            return (
-              <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-lg">{c.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{catSavings.length} deposits</p>
-                </div>
-                <p className="font-mono-ui text-sm font-bold">{formatINR(total)}</p>
-                <button className="touch-target rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteCategory(c)}>
-                  <Trash2 size={17} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Activity View (Savings History with Pagination, Detail Sheet)
