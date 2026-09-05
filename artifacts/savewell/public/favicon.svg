@@ -1,13 +1,14 @@
-<svg width="180" height="180" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="36" height="36" rx="9" fill="#1c3b2e"/>
-  <!-- Geometric SaveWell "S" Curve -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <!-- SaveWell Squircle Tile Base -->
+  <rect width="36" height="36" rx="10" fill="#1b382b"/>
+  <!-- Geometric SaveWell "S" Curve (Savings Vault + Growth Trend) -->
   <path
     d="M23.5 11C23.5 11 15 10.5 13 14.5C11.2 18.2 15.8 19.8 18.5 20.8C21.8 22 25 23.5 25 27.2C25 31.2 20.2 32.5 15.5 32.5C11.5 32.5 10.5 29.5 10.5 29.5"
-    stroke="#fcf9f2"
-    stroke-width="3"
+    stroke="#fcfaf5"
+    stroke-width="3.2"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <!-- Goal Growth Spark / Apex Accent -->
+  <!-- Goal Growth Spark / Wealth Apex Node -->
   <circle cx="26" cy="10" r="2.4" fill="#c6784e"/>
 </svg>
