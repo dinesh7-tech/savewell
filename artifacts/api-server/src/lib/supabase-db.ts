@@ -1,10 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { readDb, writeDb, type DBData, type Category, type Goal, type Saving } from "./json-db";
 
-export const SUPABASE_URL = "https://syjnmyajujzbzyygqznb.supabase.co";
-export const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5am5teWFqdWp6Ynp5eWdxem5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MzA1NjQsImV4cCI6MjEwNDEwNjU2NH0.ndtImWH9xcxHnf5h6Qi_z598NFW6dUmElHBGnu8EgIM";
+export const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+export const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const supabase = createClient(
+  SUPABASE_URL || "https://placeholder.supabase.co",
+  SUPABASE_KEY || "placeholder-anon-key"
+);
 
 export async function fetchSupabaseData(): Promise<DBData | null> {
   try {

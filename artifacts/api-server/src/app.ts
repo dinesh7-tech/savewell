@@ -32,5 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(healthRouter);
 app.use("/api", router);
 
+// Centralized safe error handler: prevents internal paths, stack traces, or credentials from leaking
+app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+  logger.error(err, "Unhandled API error");
+  if (res.headersSent) return;
+  res.status(500).json({ error: "An unexpected error occurred. Please try again later." });
+});
+
 export default app;
 
