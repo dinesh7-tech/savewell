@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "artifacts/savewell/dist/public",
+  "outputDirectory": "artifacts/savewell/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
