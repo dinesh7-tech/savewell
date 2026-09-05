@@ -718,8 +718,10 @@ function AddSavingModal({ onClose, categories = [], goals = [] }: any) {
     const savingData = {
       user_id: user.id,
       amount: amt,
+      amount_paise: Math.round(amt * 100),
       category_id: categoryId,
       goal_id: isGoalLinked && goalId ? goalId : null,
+      date: date,
       saving_date: date,
       note: note.trim() || null,
       is_goal_linked: isGoalLinked && Boolean(goalId),
@@ -1226,12 +1228,17 @@ function GoalsPage() {
       }
     }
 
+    const targetPaise = Math.round(targetAmount * 100);
+    const startingPaise = Math.round(startingAmount * 100);
+
     const payload = {
       user_id: user.id,
       name: trimmedName,
       icon: form.icon || '🎯',
       target_amount: targetAmount,
+      target_paise: targetPaise,
       starting_amount: startingAmount,
+      starting_paise: startingPaise,
       target_date: form.target_date?.trim() || null,
       description: form.description?.trim() || null,
       is_main: goals.length === 0 || isMain,
