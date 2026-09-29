@@ -397,14 +397,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
     pointer-events: none;
   }
 
-  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
-   * buttons/badges can remove the automatic brightness adjustment on interactions
-   * and program their own. */
-  .no-default-hover-elevate {
-  }
-
-  .no-default-active-elevate {
-  }
+  /* .no-default-hover-elevate / .no-default-active-elevate are marker classes used with :not() selectors */
 
   /**
    * Toggleable backgrounds go behind the content. Hoverable/active goes on top.

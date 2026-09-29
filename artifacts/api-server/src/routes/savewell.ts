@@ -1,4 +1,4 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type Request, type Response } from "express";
 import {
   CreateCategoryBody,
   CreateCategoryResponse,
@@ -29,7 +29,7 @@ import {
 import { readDb, writeDb, type Goal, type Saving } from "../lib/json-db";
 import { getUnifiedDb, insertSupabaseSaving, insertSupabaseGoal } from "../lib/supabase-db";
 
-const router: IRouter = Router();
+const router = Router();
 
 function todayString(): string {
   return new Date().toISOString().slice(0, 10);

@@ -1,4 +1,4 @@
-import express, { type Express, type Request, type Response } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
 import router, { healthRouter } from "./routes";
@@ -33,7 +33,7 @@ app.use(healthRouter);
 app.use("/api", router);
 
 // Centralized safe error handler: prevents internal paths, stack traces, or credentials from leaking
-app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   logger.error(err, "Unhandled API error");
   if (res.headersSent) return;
   res.status(500).json({ error: "An unexpected error occurred. Please try again later." });
