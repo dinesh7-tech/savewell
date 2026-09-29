@@ -1732,6 +1732,7 @@ function RepaymentHistoryModal({ record, onClose }: any) {
     },
   });
 
+  const repayments = repaymentsQuery.data || [];
   const [deleteRepConfirm, setDeleteRepConfirm] = useState<any>(null);
 
   return (
@@ -1791,8 +1792,8 @@ function RepaymentHistoryModal({ record, onClose }: any) {
             const { error } = await supabase.from('money_lent_repayments').delete().eq('id', deleteRepConfirm.id);
             if (error) throw new Error(error.message || 'Failed to delete repayment entry.');
 
-            const remainingReps = repayments.filter(r => r.id !== deleteRepConfirm.id);
-            const newTotalRepaid = remainingReps.reduce((s, r) => s + Number(r.amount || 0), 0);
+            const remainingReps = repayments.filter((r: any) => r.id !== deleteRepConfirm.id);
+            const newTotalRepaid = remainingReps.reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
             let newStatus = 'Pending';
             if (newTotalRepaid >= Number(record.amount) - 0.01) {
               newStatus = 'Returned';
