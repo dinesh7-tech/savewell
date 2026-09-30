@@ -2416,11 +2416,11 @@ function Dashboard() {
   // Goal saved amount calculation
   const goalsWithCalculatedAmounts = useMemo(() => {
     return goals.map((g: any) => {
-      const targetAmt = Number(g.target_amount || 0);
-      const startingAmt = Number(g.starting_amount || 0);
+      const targetAmt = Number(g.target_amount != null ? g.target_amount : (g.target_paise ? g.target_paise / 100 : 0));
+      const startingAmt = Number(g.starting_amount != null ? g.starting_amount : (g.starting_paise ? g.starting_paise / 100 : 0));
       const linkedDeposits = savings
         .filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false)
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        .reduce((sum: number, s: any) => sum + Number(s.amount != null ? s.amount : (s.amount_paise ? s.amount_paise / 100 : 0)), 0);
       return {
         ...g,
         target_amount: targetAmt,
@@ -2636,12 +2636,16 @@ function Dashboard() {
   };
 
   const saveGoalFromDashboard = async (form: any) => {
+    const targetAmount = Number(form.target_amount);
+    const startingAmount = Number(form.starting_amount || 0);
     const payload = {
       user_id: user.id,
       name: form.name.trim(),
       icon: form.icon || '🎯',
-      target_amount: Number(form.target_amount),
-      starting_amount: Number(form.starting_amount || 0),
+      target_amount: targetAmount,
+      target_paise: Math.round(targetAmount * 100),
+      starting_amount: startingAmount,
+      starting_paise: Math.round(startingAmount * 100),
       target_date: form.target_date?.trim() || null,
       description: form.description?.trim() || null,
       is_main: goals.length === 0 || Boolean(form.is_main),
@@ -3227,11 +3231,11 @@ function AnalyticsPage() {
   // D. Goal Analytics Breakdown
   const goalAnalytics = useMemo(() => {
     return goals.map((g: any) => {
-      const targetAmt = Number(g.target_amount || 0);
-      const startingAmt = Number(g.starting_amount || 0);
+      const targetAmt = Number(g.target_amount != null ? g.target_amount : (g.target_paise ? g.target_paise / 100 : 0));
+      const startingAmt = Number(g.starting_amount != null ? g.starting_amount : (g.starting_paise ? g.starting_paise / 100 : 0));
       const linked = savings
         .filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false)
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        .reduce((sum: number, s: any) => sum + Number(s.amount != null ? s.amount : (s.amount_paise ? s.amount_paise / 100 : 0)), 0);
       const savedAmt = startingAmt + linked;
       const remainingAmt = Math.max(0, targetAmt - savedAmt);
       const progress = pct(savedAmt, targetAmt);
@@ -5085,12 +5089,16 @@ function GoalsPage() {
 
   const goalsWithCalculated = useMemo(() => {
     return goals.map((g: any) => {
+      const targetAmt = Number(g.target_amount != null ? g.target_amount : (g.target_paise ? g.target_paise / 100 : 0));
+      const startingAmt = Number(g.starting_amount != null ? g.starting_amount : (g.starting_paise ? g.starting_paise / 100 : 0));
       const linkedSum = savings
         .filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false)
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        .reduce((sum: number, s: any) => sum + Number(s.amount != null ? s.amount : (s.amount_paise ? s.amount_paise / 100 : 0)), 0);
       return {
         ...g,
-        saved_amount: Number(g.starting_amount || 0) + linkedSum,
+        target_amount: targetAmt,
+        starting_amount: startingAmt,
+        saved_amount: startingAmt + linkedSum,
       };
     });
   }, [goals, savings]);
@@ -5116,7 +5124,9 @@ function GoalsPage() {
       name: trimmedName,
       icon: form.icon || '🎯',
       target_amount: targetAmount,
+      target_paise: Math.round(targetAmount * 100),
       starting_amount: startingAmount,
+      starting_paise: Math.round(startingAmount * 100),
       target_date: form.target_date?.trim() || null,
       description: form.description?.trim() || null,
       is_main: goals.length === 0 || isMain,
@@ -5226,8 +5236,12 @@ function GoalsPage() {
 function GoalModal({ initial, onClose, onSubmit }: any) {
   const [name, setName] = useState(initial?.name || '');
   const [icon, setIcon] = useState(initial?.icon || '🎯');
-  const [target, setTarget] = useState(initial ? String(initial.target_amount) : '');
-  const [starting, setStarting] = useState(initial ? String(initial.starting_amount || 0) : '0');
+  const [target, setTarget] = useState(
+    initial ? String(initial.target_amount != null ? initial.target_amount : (initial.target_paise ? initial.target_paise / 100 : '')) : ''
+  );
+  const [starting, setStarting] = useState(
+    initial ? String(initial.starting_amount != null ? initial.starting_amount : (initial.starting_paise ? initial.starting_paise / 100 : 0)) : '0'
+  );
   const [targetDate, setTargetDate] = useState(initial?.target_date || '');
   const [description, setDescription] = useState(initial?.description || '');
   const [isMain, setIsMain] = useState(initial?.is_main || false);
@@ -5471,12 +5485,13 @@ function ExportPdfReportModal({ onClose }: { onClose: () => void }) {
       const goalsList: any[] = [];
       allGoals.forEach((g: any) => {
         const goalMonthSavings = monthSavings.filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false);
-        const monthContributed = goalMonthSavings.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        const monthContributed = goalMonthSavings.reduce((sum: number, s: any) => sum + Number(s.amount != null ? s.amount : (s.amount_paise ? s.amount_paise / 100 : 0)), 0);
 
         const allGoalSavings = allSavings.filter((s: any) => s.goal_id === g.id && s.is_goal_linked !== false);
-        const totalLinked = allGoalSavings.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
-        const overallSaved = Number(g.starting_amount || 0) + totalLinked;
-        const targetAmt = Number(g.target_amount || 0);
+        const totalLinked = allGoalSavings.reduce((sum: number, s: any) => sum + Number(s.amount != null ? s.amount : (s.amount_paise ? s.amount_paise / 100 : 0)), 0);
+        const startingAmt = Number(g.starting_amount != null ? g.starting_amount : (g.starting_paise ? g.starting_paise / 100 : 0));
+        const overallSaved = startingAmt + totalLinked;
+        const targetAmt = Number(g.target_amount != null ? g.target_amount : (g.target_paise ? g.target_paise / 100 : 0));
         const overallProgress = pct(overallSaved, targetAmt);
 
         if (monthContributed > 0 || monthSavings.length === 0) {

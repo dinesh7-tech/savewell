@@ -60,12 +60,27 @@ ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.u
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS name TEXT DEFAULT 'Savings Goal';
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS icon TEXT DEFAULT '🎯';
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS target_amount NUMERIC(14,2) DEFAULT 1000;
+ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS target_paise INTEGER DEFAULT 100000;
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS starting_amount NUMERIC(14,2) DEFAULT 0;
+ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS starting_paise INTEGER DEFAULT 0;
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS target_date DATE;
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS is_main BOOLEAN DEFAULT FALSE;
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Ensure target_paise and starting_paise have safe default / nullable if both schemas exist
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'goals' AND column_name = 'target_paise') THEN
+    ALTER TABLE public.goals ALTER COLUMN target_paise SET DEFAULT 0;
+    ALTER TABLE public.goals ALTER COLUMN target_paise DROP NOT NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'goals' AND column_name = 'starting_paise') THEN
+    ALTER TABLE public.goals ALTER COLUMN starting_paise SET DEFAULT 0;
+    ALTER TABLE public.goals ALTER COLUMN starting_paise DROP NOT NULL;
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------
 -- 4. SAVINGS TABLE
